@@ -1,60 +1,60 @@
-name: Build and Deploy Docker Image
+# name: Build and Deploy Docker Image
 
-on:
-  push:
-    branches:
-      - docker-test  
+# on:
+#   push:
+#     branches:
+#       - docker-test  
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout the code
-        uses: actions/checkout@v3
+#     steps:
+#       - name: Checkout the code
+#         uses: actions/checkout@v3
 
-      # Set up PHP environment for Laravel
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, pdo_mysql, gd, bcmath
-          tools: composer
+#       # Set up PHP environment for Laravel
+#       - name: Setup PHP
+#         uses: shivammathur/setup-php@v2
+#         with:
+#           php-version: '8.2'
+#           extensions: mbstring, pdo_mysql, gd, bcmath
+#           tools: composer
 
-      # Cache Composer dependencies for faster builds
-      - name: Cache Composer dependencies
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+#       # Cache Composer dependencies for faster builds
+#       - name: Cache Composer dependencies
+#         uses: actions/cache@v3
+#         with:
+#           path: vendor
+#           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+#           restore-keys: ${{ runner.os }}-composer-
 
-      # Install Composer dependencies
-      - name: Install dependencies
-        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+#       # Install Composer dependencies
+#       - name: Install dependencies
+#         run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}  # Add DockerHub username to GitHub secrets
-          password: ${{ secrets.DOCKER_PASSWORD }}  # Add DockerHub password to GitHub secrets
+#       - name: Log in to Docker Hub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build the Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/my-laravel-app:${{ github.sha }} .
+#       - name: Build the Docker image
+#         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/docker-laravel-test:${{ github.sha }} .
 
-      - name: Push the Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/my-laravel-app:${{ github.sha }}
+#       - name: Push the Docker image to Docker Hub
+#         run: docker push ${{ secrets.DOCKER_USERNAME }}/docker-laravel-test:${{ github.sha }}
 
-      # Deploy to Server
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}            
-          username: ${{ secrets.SERVER_USER }}       
-          key: ${{ secrets.SERVER_SSH_KEY }}         
-          port: 22
-          script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/my-laravel-app:${{ github.sha }}
-            docker stop my-laravel-app || true
-            docker rm my-laravel-app || true
-            docker run -d --name my-laravel-app -p 80:9000 ${{ secrets.DOCKER_USERNAME }}/my-laravel-app:${{ github.sha }}
+#       # Deploy to Server
+#       - name: Deploy to Server
+#         uses: appleboy/ssh-action@v0.1.7
+#         with:
+#           host: ${{ secrets.HOST }}            
+#           username: ${{ secrets.USERNAME }}       
+#           key: ${{ secrets.PRIVATE_KEY }}         
+#           port: 22
+#           script: |
+#             docker pull ${{ secrets.DOCKER_USERNAME }}/docker-laravel-test:${{ github.sha }}
+#             docker stop docker-laravel-test || true
+#             docker rm docker-laravel-test || true
+#             docker run -d --name docker-laravel-test -p 80:9000 ${{ secrets.DOCKER_USERNAME }}/docker-laravel-test:${{ github.sha }}
